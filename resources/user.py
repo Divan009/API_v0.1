@@ -27,3 +27,27 @@ class InvestOperations(Resource):
 class all_investment(Resource):
     def get(self):
         return {'investments': list(map(lambda x: x.json(), UserModel.query.all()))}
+
+class borrow(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('id',
+                        type=int,
+                        required=True,
+                        help="ID(required) error "
+                        )
+    parser.add_argument('borrow_amt',
+                        type = int,
+                        required = True,
+                        help = "borrow_amt(required) error"
+                        )
+    def post(self):
+        data = borrow.parser.parse_args()
+        user = UserModel.find_by_id(data['id'])
+        if user:
+            if user.borrow_amt == 0 and data['borrow_amt']<user.invest_amt:
+                user.borrow_amt = data['borrow_amt']
+            else:
+                return {'message':'error_USER operation not allowed'}
+            user.save_to_db()
+            return user.json()
+        return {'error':'user does not exist'}

@@ -8,10 +8,15 @@ class UserModel(db.Model):
     #username = db.Column(db.String(80))
     invest_amt = db.Column(db.Integer)
     #password = db.Column(db.String(80))
+    lend_amt = db.Column(db.Integer)
+    borrow_amt = db.Column(db.Integer)
 
-    def __init__(self,invest_amt):
+
+    def __init__(self,invest_amt,lend_amt=0,borrow_amt=0):
         #self.username = username
         self.invest_amt = invest_amt
+        self.lend_amt = lend_amt
+        self.borrow_amt = borrow_amt
         #self.password = password
 
     def save_to_db(self):
@@ -19,7 +24,10 @@ class UserModel(db.Model):
         db.session.commit()
 
     def json(self):
-        return {'id': self.id, 'invest_amt': self.invest_amt}
+        return {'id': self.id,
+                'invest_amt': self.invest_amt,
+                'lend_amt':self.lend_amt,
+                'borrow_amt':self.borrow_amt}
 
     @classmethod
     def find_by_id(cls, _id):
