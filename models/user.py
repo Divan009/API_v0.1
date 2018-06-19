@@ -32,3 +32,7 @@ class UserModel(db.Model):
     @classmethod
     def find_by_id(cls, _id):
         return cls.query.filter_by(id=_id).first()
+
+    @classmethod
+    def investor_mapping(cls,borrow_request,_id):#more work needed
+        return cls.query.filter((invest_amt>borrow_request) and (id != _id)).first()
