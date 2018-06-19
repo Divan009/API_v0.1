@@ -4,13 +4,14 @@ from db import db
 class UserModel(db.Model):
     __tablename__ = 'users'
 
-    Trx_id = db.Column(db.Integer,db.ForeignKey('mapping.Trx_id'))
     id = db.Column(db.Integer, primary_key=True)
-    #username = db.Column(db.String(80))
     invest_amt = db.Column(db.Integer)
-    #password = db.Column(db.String(80))
     lend_amt = db.Column(db.Integer)
     borrow_amt = db.Column(db.Integer)
+    Trx_id = db.Column(db.Integer,db.ForeignKey('mapping.Trx_id'))
+
+
+
     mappingModel = db.relationship('MappingModel')
 
     def __init__(self,invest_amt,lend_amt=0,borrow_amt=0):
@@ -28,7 +29,8 @@ class UserModel(db.Model):
         return {'id': self.id,
                 'invest_amt': self.invest_amt,
                 'lend_amt':self.lend_amt,
-                'borrow_amt':self.borrow_amt}
+                'borrow_amt':self.borrow_amt,
+                'transaction':self.Trx_id}
 
     @classmethod
     def find_by_id(cls, _id):

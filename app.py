@@ -2,7 +2,7 @@ import os
 from flask import Flask
 from flask_restful import Api
 
-from resources.user import InvestOperations,all_investment,borrow
+from resources.user import all_investment,InvestOperations,borrow,repay 
 
 app = Flask(__name__)
 
@@ -19,6 +19,8 @@ def create_tables():
 api.add_resource(InvestOperations,'/invest')
 api.add_resource(all_investment,'/all_investment')
 api.add_resource(borrow,'/borrow')
+api.add_resource(repay,'/repay')
+
 
 
 
