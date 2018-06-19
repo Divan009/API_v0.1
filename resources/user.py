@@ -46,7 +46,11 @@ class borrow(Resource):
         if user:
             if user.borrow_amt == 0 and data['borrow_amt']<user.invest_amt:
                 #user.borrow_amt = data['borrow_amt'] #changes required
-                lender = investor_mapping(data['borrow_amt'],data[id])
+                lender = UserModel.investor_mapping(data['borrow_amt'],data['id'])
+                print("lender.id: ")
+                print(lender.id)
+                print("user.id: ")
+                print(user.id)
                 lender.lend_amt = data['borrow_amt']
                 lender.invest_amt = lender.invest_amt - lender.lend_amt
                 user.borrow_amt = data['borrow_amt']

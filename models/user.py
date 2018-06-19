@@ -34,5 +34,11 @@ class UserModel(db.Model):
         return cls.query.filter_by(id=_id).first()
 
     @classmethod
-    def investor_mapping(cls,borrow_request,_id):#more work needed
-        return cls.query.filter((invest_amt>borrow_request) and (id != _id)).first()
+    def investor_mapping(cls, borrow_request, _id):#more work needed
+        ''' cls.query.filter(id != _id).first() '''
+        all_investor = cls.query.all()
+        for each_investor in all_investor:
+            if each_investor.id != _id and each_investor.invest_amt > borrow_request:
+                req_investor = each_investor
+                break
+        return req_investor
