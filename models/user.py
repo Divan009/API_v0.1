@@ -4,13 +4,14 @@ from db import db
 class UserModel(db.Model):
     __tablename__ = 'users'
 
+    Trx_id = db.Column(db.Integer,db.ForeignKey('mapping.Trx_id'))
     id = db.Column(db.Integer, primary_key=True)
     #username = db.Column(db.String(80))
     invest_amt = db.Column(db.Integer)
     #password = db.Column(db.String(80))
     lend_amt = db.Column(db.Integer)
     borrow_amt = db.Column(db.Integer)
-
+    mappingModel = db.relationship('MappingModel')
 
     def __init__(self,invest_amt,lend_amt=0,borrow_amt=0):
         #self.username = username
@@ -34,8 +35,7 @@ class UserModel(db.Model):
         return cls.query.filter_by(id=_id).first()
 
     @classmethod
-    def investor_mapping(cls, borrow_request, _id):#more work needed
-        ''' cls.query.filter(id != _id).first() '''
+    def find_investor(cls, borrow_request, _id):#more work needed
         all_investor = cls.query.all()
         for each_investor in all_investor:
             if each_investor.id != _id and each_investor.invest_amt > borrow_request:
