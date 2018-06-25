@@ -10,6 +10,8 @@ from flask_jwt_extended import (
     jwt_required,
     jwt_optional
 )
+
+from models.investRequest import InvestRequestModel
 from models.user import UserModel
 from models.mapping import MappingModel
 from blacklist import BLACKLIST
@@ -19,27 +21,32 @@ class all_investment(Resource):
         return {'investments': list(map(lambda x: x.json(), UserModel.query.all()))}
 
 
-class InvestOperations(Resource):
+
+#user
+class InvestRequest(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('invest_amt',
                         type = int,
                         required = True,
                         help = "invest_amt(required) error"
                         )
+    parser.add_argument('UTR',
+                        type = int,
+                        required = True,
+                        help = "UTR (required) error"
+                        )
     @jwt_required
     def post(self):
-        data = InvestOperations.parser.parse_args()
-        #user = UserModel.find_by_username(data['username'])
+        data = InvestRequest.parser.parse_args()
+        if len(str(data['UTR'])) != 12:
+            return {'error':'UPI reference is not 12 digits'}
+
         user_id = get_jwt_identity()
         user = UserModel.find_by_id(user_id)
-        if user:
-            user.invest_amt = user.invest_amt + data['invest_amt']
-        else:
-            return {'error':'user not registerd '}
 
-        user.save_to_db()
-        return user.json()
-
+        request = InvestRequestModel(user.id,data['invest_amt'],data['UTR'])
+        request.save_to_db()
+        return {'message':'deposit request submitted Successfully'}
 
 class borrow(Resource):
     parser = reqparse.RequestParser()

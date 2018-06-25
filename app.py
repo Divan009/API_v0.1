@@ -5,7 +5,8 @@ from flask_jwt_extended import JWTManager
 from blacklist import BLACKLIST
 
 from resources.user import all_investment
-from resources.user import InvestOperations,borrow,repay,UserRegister,UserLogin,UserLogout,TokenRefresh
+from resources.user import InvestRequest,borrow,repay,UserRegister,UserLogin,UserLogout,TokenRefresh
+from resources.investRequest import all_investRequest,InvestOperations
 
 app = Flask(__name__)
 
@@ -18,6 +19,13 @@ api = Api(app)
 app.config['JWT_BLACKLIST_ENABLED'] = True  # enable blacklist feature
 app.config['JWT_BLACKLIST_TOKEN_CHECKS'] = ['access', 'refresh']  # allow blacklisting for access and refresh tokens
 jwt = JWTManager(app)
+
+@jwt.user_claims_loader
+def add_claims_to_jwt(identity):
+    if identity == 1:   # instead of hard-coding, we should read from a config file to get a list of admins instead
+        return {'is_admin': True}
+    return {'is_admin': False}
+
 
 # This method will check if a token is blacklisted, and will be called automatically when blacklist is enabled
 @jwt.token_in_blacklist_loader
@@ -67,14 +75,24 @@ def revoked_token_callback():
 def create_tables():
     db.create_all()
 
-api.add_resource(InvestOperations,'/invest')
-api.add_resource(all_investment,'/all_investment')
+#deposit and withdraw request endpoint
+api.add_resource(InvestRequest,'/invest')
+#api.add_resource(WithdrawRequest,'/withdraw')
+
+#investment endpointd
+api.add_resource(all_investment,'/everything')
 api.add_resource(borrow,'/borrow')
 api.add_resource(repay,'/repay')
+
+#user endpoints
 api.add_resource(UserRegister,'/register')
 api.add_resource(UserLogin,'/login')
 api.add_resource(UserLogout,'/logout')
 api.add_resource(TokenRefresh,'/refresh_token')
+
+#admin only
+api.add_resource(all_investRequest,'/investmentRequest')
+api.add_resource(InvestOperations,'/verifyInvest')
 
 
 if __name__ == '__main__':

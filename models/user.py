@@ -16,6 +16,7 @@ class UserModel(db.Model):
     weight_id = db.Column(db.Integer)
 
     mappingModel = db.relationship('MappingModel')
+    investRequestModel = db.relationship('InvestRequestModel')
 
     def __init__(self,username,password,invest_amt=0,lend_amt=0,borrow_amt=0,weight_id=0):
         self.username = username
@@ -49,10 +50,10 @@ class UserModel(db.Model):
 
     @classmethod
     def find_investor(cls, borrow_request, username):#more work needed
-        req_investor = None 
+        req_investor = None
         all_investor = cls.query.order_by(cls.weight_id).all()
         for each_investor in all_investor:
-            if each_investor.username != username and each_investor.invest_amt > borrow_request:
+            if each_investor.username != username and each_investor.invest_amt > borrow_request and each_investor.lend_amt == 0:
                 req_investor = each_investor
                 break
         return req_investor

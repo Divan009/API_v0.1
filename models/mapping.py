@@ -7,7 +7,7 @@ class MappingModel(db.Model):
     l_id = db.Column(db.Integer)
     b_id = db.Column(db.Integer)
 
-    user = db.relationship('UserModel')
+    userModel = db.relationship('UserModel')
 
     def __init__(self,l_id,b_id):
         self.l_id = l_id
