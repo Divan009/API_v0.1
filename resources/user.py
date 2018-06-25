@@ -14,21 +14,10 @@ from models.user import UserModel
 from models.mapping import MappingModel
 from blacklist import BLACKLIST
 
-'''
 class all_investment(Resource):
-    @jwt_optional
     def get(self):
-        #return {'investments': list(map(lambda x: x.json(), UserModel.query.all()))}
-        user_id = get_jwt_identity()
-        user = UserModel.find_all()
-        if user_id:
-            return user.json(), 200
+        return {'investments': list(map(lambda x: x.json(), UserModel.query.all()))}
 
-        return{
-            'username':[items['username'] for item in items],
-            'message':'More data on login'
-        }
-'''
 
 class InvestOperations(Resource):
     parser = reqparse.RequestParser()
@@ -68,10 +57,14 @@ class borrow(Resource):
             if user.borrow_amt == 0 and data['borrow_amt']<user.invest_amt:
                 #user.borrow_amt = data['borrow_amt'] #changes required
                 lender = UserModel.find_investor(data['borrow_amt'],user.username)
-                lender.lend_amt = data['borrow_amt']
-                lender.invest_amt = lender.invest_amt - lender.lend_amt
-                user.borrow_amt = data['borrow_amt']
-                transaction = MappingModel(lender.id,user.id)
+                if lender:
+                    lender.lend_amt = data['borrow_amt']
+                    lender.invest_amt = lender.invest_amt - lender.lend_amt
+                    user.borrow_amt = data['borrow_amt']
+                    lender.weight_id = lender.weight_id + 1
+                    transaction = MappingModel(lender.id,user.id)
+                else:
+                    return {'message':'sorry no investor found'}
 
             else:
                 return {'message':'error_USER operation not allowed'}
@@ -85,17 +78,11 @@ class borrow(Resource):
 
 
 class repay(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument('transaction',
-                        type = int,
-                        required = True,
-                        help = "error: transaction id required for repayment"
-                        )
     @jwt_required
-    def post(self):
-        data = repay.parser.parse_args()
-        transaction = MappingModel.find_by_id(data['transaction'])
+    def get(self):
         user_id = get_jwt_identity()
+        user = UserModel.find_by_id(user_id)
+        transaction = MappingModel.find_by_id(user.Trx_id)
         if transaction and transaction.b_id == user_id:
             l_id = transaction.l_id
             b_id = transaction.b_id

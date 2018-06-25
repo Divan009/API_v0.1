@@ -4,7 +4,7 @@ from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from blacklist import BLACKLIST
 
-
+from resources.user import all_investment
 from resources.user import InvestOperations,borrow,repay,UserRegister,UserLogin,UserLogout,TokenRefresh
 
 app = Flask(__name__)
@@ -68,7 +68,7 @@ def create_tables():
     db.create_all()
 
 api.add_resource(InvestOperations,'/invest')
-#api.add_resource(all_investment,'/all_investment')
+api.add_resource(all_investment,'/all_investment')
 api.add_resource(borrow,'/borrow')
 api.add_resource(repay,'/repay')
 api.add_resource(UserRegister,'/register')
