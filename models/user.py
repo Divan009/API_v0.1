@@ -53,7 +53,7 @@ class UserModel(db.Model):
         req_investor = None
         all_investor = cls.query.order_by(cls.weight_id).all()
         for each_investor in all_investor:
-            if each_investor.username != username and each_investor.invest_amt > borrow_request and each_investor.lend_amt == 0:
+            if each_investor.username != username and each_investor.invest_amt > borrow_request:
                 req_investor = each_investor
                 break
         return req_investor

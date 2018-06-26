@@ -4,9 +4,9 @@ from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from blacklist import BLACKLIST
 
-from resources.user import all_investment
-from resources.user import InvestRequest,borrow,repay,UserRegister,UserLogin,UserLogout,TokenRefresh
+from resources.user import InvestRequest,RepayRequest,borrow,UserRegister,UserLogin,UserLogout,TokenRefresh,all_investment
 from resources.investRequest import all_investRequest,InvestOperations
+from resources.repayRequest import all_repayRequest,repay
 
 app = Flask(__name__)
 
@@ -82,7 +82,7 @@ api.add_resource(InvestRequest,'/invest')
 #investment endpointd
 api.add_resource(all_investment,'/everything')
 api.add_resource(borrow,'/borrow')
-api.add_resource(repay,'/repay')
+api.add_resource(RepayRequest,'/repay')
 
 #user endpoints
 api.add_resource(UserRegister,'/register')
@@ -91,8 +91,14 @@ api.add_resource(UserLogout,'/logout')
 api.add_resource(TokenRefresh,'/refresh_token')
 
 #admin only
+
+#invest
 api.add_resource(all_investRequest,'/investmentRequest')
 api.add_resource(InvestOperations,'/verifyInvest')
+#repay
+api.add_resource(all_repayRequest,'/all_repayRequest')
+api.add_resource(repay,'/verifyRepay')
+#withdraw
 
 
 if __name__ == '__main__':

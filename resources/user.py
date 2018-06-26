@@ -11,6 +11,7 @@ from flask_jwt_extended import (
     jwt_optional
 )
 
+from models.repayRequest import RepayRequestModel
 from models.investRequest import InvestRequestModel
 from models.user import UserModel
 from models.mapping import MappingModel
@@ -48,6 +49,30 @@ class InvestRequest(Resource):
         request.save_to_db()
         return {'message':'deposit request submitted Successfully'}
 
+class RepayRequest(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('UTR',
+                        type = int,
+                        required = True,
+                        help = "UTR (required) error"
+                        )
+    @jwt_required
+    def post(self):
+        data = RepayRequest.parser.parse_args()
+        if len(str(data['UTR'])) != 12:
+            return {'error':'UPI reference is not 12 digits'}
+
+        user_id = get_jwt_identity()
+        user = UserModel.find_by_id(user_id)
+
+        if user.borrow_amt == 0:
+            return {'error':'operation invalid'}
+
+        request = RepayRequestModel(user.id,user.borrow_amt,data['UTR'])
+        request.save_to_db()
+        return {'message':'repay request submitted Successfully'}
+
+
 class borrow(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('borrow_amt',
@@ -65,8 +90,8 @@ class borrow(Resource):
                 #user.borrow_amt = data['borrow_amt'] #changes required
                 lender = UserModel.find_investor(data['borrow_amt'],user.username)
                 if lender:
-                    lender.lend_amt = data['borrow_amt']
-                    lender.invest_amt = lender.invest_amt - lender.lend_amt
+                    lender.lend_amt = lender.lend_amt+data['borrow_amt']
+                    lender.invest_amt = lender.invest_amt - data['borrow_amt']
                     user.borrow_amt = data['borrow_amt']
                     lender.weight_id = lender.weight_id + 1
                     transaction = MappingModel(lender.id,user.id)
@@ -76,42 +101,11 @@ class borrow(Resource):
             else:
                 return {'message':'error_USER operation not allowed'}
             transaction.save_to_db()
-            lender.Trx_id = transaction.Trx_id
             user.Trx_id = transaction.Trx_id
             user.save_to_db()
             lender.save_to_db()
             return user.json()
         return {'error':'user does not exist'}
-
-
-class repay(Resource):
-    @jwt_required
-    def get(self):
-        user_id = get_jwt_identity()
-        user = UserModel.find_by_id(user_id)
-        transaction = MappingModel.find_by_id(user.Trx_id)
-        if transaction and transaction.b_id == user_id:
-            l_id = transaction.l_id
-            b_id = transaction.b_id
-
-            lender = UserModel.find_by_id(l_id)
-            borrower = UserModel.find_by_id(b_id)
-
-            lender.invest_amt = lender.invest_amt + lender.lend_amt
-            lender.lend_amt = 0
-            lender.Trx_id = None
-
-            borrower.borrow_amt = 0
-            borrower.Trx_id = None
-
-        else:
-            return {'message':'error_USER no such transaction'}
-
-        transaction.delete_from_db()
-        lender.save_to_db()
-        borrower.save_to_db()
-
-        return borrower.json()
 
 
 class UserRegister(Resource):
