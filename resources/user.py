@@ -13,6 +13,7 @@ from flask_jwt_extended import (
 
 from models.repayRequest import RepayRequestModel
 from models.investRequest import InvestRequestModel
+from models.withdrawRequest import WithdrawRequestModel
 from models.user import UserModel
 from models.mapping import MappingModel
 from blacklist import BLACKLIST
@@ -71,6 +72,25 @@ class RepayRequest(Resource):
         request = RepayRequestModel(user.id,user.borrow_amt,data['UTR'])
         request.save_to_db()
         return {'message':'repay request submitted Successfully'}
+
+class WithdrawRequest(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('amount',
+                        type = int,
+                        required = True,
+                        help = "amount (required) error"
+                        )
+    @jwt_required
+    def post(self):
+        user_id = get_jwt_identity()
+        user = UserModel.find_by_id(user_id)
+        data = WithdrawRequest.parser.parse_args()
+        if user.borrow_amt == 0 and user.invest_amt >= data['amount']:
+            withdraw_request = WithdrawRequestModel(user.id,data['amount'])
+        else:
+            return {'error':'operation not allowed'}
+        withdraw_request.save_to_db()
+        return {'message':'request submitted successfully'}
 
 
 class borrow(Resource):

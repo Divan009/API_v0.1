@@ -17,6 +17,7 @@ class UserModel(db.Model):
 
     mappingModel = db.relationship('MappingModel')
     investRequestModel = db.relationship('InvestRequestModel')
+    withdrawRequestModel = db.relationship('WithdrawRequestModel')
 
     def __init__(self,username,password,invest_amt=0,lend_amt=0,borrow_amt=0,weight_id=0):
         self.username = username

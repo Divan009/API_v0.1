@@ -4,9 +4,10 @@ from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from blacklist import BLACKLIST
 
-from resources.user import InvestRequest,RepayRequest,borrow,UserRegister,UserLogin,UserLogout,TokenRefresh,all_investment
+from resources.user import InvestRequest,RepayRequest,WithdrawRequest,borrow,UserRegister,UserLogin,UserLogout,TokenRefresh,all_investment
 from resources.investRequest import all_investRequest,InvestOperations
 from resources.repayRequest import all_repayRequest,repay
+from resources.withdrawRequest import all_withdrawRequest,verifyWithdraw
 
 app = Flask(__name__)
 
@@ -77,7 +78,7 @@ def create_tables():
 
 #deposit and withdraw request endpoint
 api.add_resource(InvestRequest,'/invest')
-#api.add_resource(WithdrawRequest,'/withdraw')
+api.add_resource(WithdrawRequest,'/withdraw')
 
 #investment endpointd
 api.add_resource(all_investment,'/everything')
@@ -93,12 +94,14 @@ api.add_resource(TokenRefresh,'/refresh_token')
 #admin only
 
 #invest
-api.add_resource(all_investRequest,'/investmentRequest')
+api.add_resource(all_investRequest,'/all_investRequest')
 api.add_resource(InvestOperations,'/verifyInvest')
 #repay
 api.add_resource(all_repayRequest,'/all_repayRequest')
 api.add_resource(repay,'/verifyRepay')
 #withdraw
+api.add_resource(all_withdrawRequest,'/all_withdrawRequest')
+api.add_resource(verifyWithdraw,'/verifyWithdraw')
 
 
 if __name__ == '__main__':
