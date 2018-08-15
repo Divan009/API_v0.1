@@ -144,11 +144,11 @@ class UserRegister(Resource):
         data = UserRegister.parser.parse_args()
         user = UserModel.find_by_username(data['username'])
         if user:
-            return {'error':'user already exist'}
+            return {'error':'user already exist'}, 200
         else:
             user = UserModel(data['username'],data['password'])
         user.save_to_db()
-        return user.json()
+        return {'message':'user created successfully'}, 200
 
 class UserLogin(Resource):
     parser = reqparse.RequestParser()
@@ -176,16 +176,25 @@ class UserLogin(Resource):
 
         return {"message": "Invalid Credentials!"}, 401
 
+class User_info(Resource):
+    @jwt_required
+    def get(self):
+        user_id = get_jwt_identity()
+        user = UserModel.find_by_id(user_id)
+        return user.json(), 200
+
+
+
 class UserLogout(Resource):
     @jwt_required
-    def post(self):
+    def get(self):
         jti = get_raw_jwt()['jti']
         BLACKLIST.add(jti)
         return {"message": "Successfully logged out"}, 200
 
 class TokenRefresh(Resource):
     @jwt_refresh_token_required
-    def post(self):
+    def get(self):
         current_user = get_jwt_identity()
         new_token = create_access_token(identity=current_user, fresh=False)
         return {'access_token': new_token}, 200
