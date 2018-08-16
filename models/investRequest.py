@@ -6,21 +6,24 @@ class InvestRequestModel(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     user_id = db.Column(db.Integer,db.ForeignKey('users.id'))
     amount = db.Column(db.Integer)
-    utr = db.Column(db.Integer)
+    order_id = db.Column(db.String(80))
+    success = db.Column(db.Integer)
 
     requestModel = db.relationship('UserModel')
 
 
-    def __init__(self,user_id,amount,utr):
+    def __init__(self,user_id,amount,order_id,success):
         self.user_id = user_id
         self.amount = amount
-        self.utr = utr
+        self.order_id = order_id
+        self.success = success
 
     def json(self):
         return {'id':self.id,
                 'user_id':self.user_id,
                 'amount':self.amount,
-                'UTR':self.utr}
+                'order_id':self.order_id,
+                'success':self.success}
 
     def save_to_db(self):
         db.session.add(self)

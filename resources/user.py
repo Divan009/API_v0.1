@@ -1,3 +1,4 @@
+import random
 from flask_restful import Resource, reqparse
 from werkzeug.security import safe_str_cmp
 
@@ -32,23 +33,24 @@ class InvestRequest(Resource):
                         required = True,
                         help = "invest_amt(required) error"
                         )
-    parser.add_argument('UTR',
-                        type = int,
-                        required = True,
-                        help = "UTR (required) error"
-                        )
+
     @jwt_required
     def post(self):
         data = InvestRequest.parser.parse_args()
+        '''
         if len(str(data['UTR'])) != 12:
             return {'error':'UPI reference is not 12 digits'}
+        '''
+
 
         user_id = get_jwt_identity()
         user = UserModel.find_by_id(user_id)
 
-        request = InvestRequestModel(user.id,data['invest_amt'],data['UTR'])
+        order_id = 'PK'+str(data['invest_amt'])+'LD'+str(random.randint(1,101))+'OI'
+        request = InvestRequestModel(user.id,data['invest_amt'],order_id,0)
+
         request.save_to_db()
-        return {'message':'deposit request submitted Successfully'}
+        return {'order_id':order_id}
 
 class RepayRequest(Resource):
     parser = reqparse.RequestParser()
