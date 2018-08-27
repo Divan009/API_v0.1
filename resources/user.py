@@ -33,24 +33,41 @@ class InvestRequest(Resource):
                         required = True,
                         help = "invest_amt(required) error"
                         )
+    parser.add_argument('options',
+                        type = str,
+                        required = True,
+                        help = "option required"
+                        )
 
     @jwt_required
     def post(self):
         data = InvestRequest.parser.parse_args()
-        '''
-        if len(str(data['UTR'])) != 12:
-            return {'error':'UPI reference is not 12 digits'}
-        '''
-
-
         user_id = get_jwt_identity()
         user = UserModel.find_by_id(user_id)
 
-        order_id = 'PK'+str(data['invest_amt'])+'LD'+str(random.randint(1,101))+'OI'
-        request = InvestRequestModel(user.id,data['invest_amt'],order_id,0)
+        if data['options'] == 'add':
+            order_id = 'PK'+str(data['invest_amt'])+'LD'+str(random.randint(1,10001))+'XI'
+            request = InvestRequestModel(user.id,data['invest_amt'],order_id,0)
+            ''' further work require security breach '''
+            request.save_to_db()
+            return {'message':'successful'}
 
-        request.save_to_db()
-        return {'order_id':order_id}
+        elif data['options'] == 'cancel':
+            request = InvestRequestModel.find_by_Userid(user_id)
+            if request:
+                request.delete_from_db()
+            return {'message':'request cancelled'}, 200
+
+
+    @jwt_required
+    def get(self):
+        user_id = get_jwt_identity()
+        user = UserModel.find_by_id(user_id)
+        req = InvestRequestModel.find_by_Userid(user.id)
+        if req:
+            return req.json(), 200
+        return {'error':'no invest request'}, 401
+
 
 class RepayRequest(Resource):
     parser = reqparse.RequestParser()
@@ -81,6 +98,11 @@ class WithdrawRequest(Resource):
                         type = int,
                         required = True,
                         help = "amount (required) error"
+                        )
+    parser.add_argument('options',
+                        type = str,
+                        required = True,
+                        help = "option required"
                         )
     @jwt_required
     def post(self):

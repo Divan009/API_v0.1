@@ -4,7 +4,7 @@ class InvestRequestModel(db.Model):
     __tablename__ = "investRequest"
 
     id = db.Column(db.Integer,primary_key=True)
-    user_id = db.Column(db.Integer,db.ForeignKey('users.id'))
+    user_id = db.Column(db.Integer,db.ForeignKey('users.id'),unique=True)
     amount = db.Column(db.Integer)
     order_id = db.Column(db.String(80))
     success = db.Column(db.Integer)
@@ -32,6 +32,11 @@ class InvestRequestModel(db.Model):
     @classmethod
     def find_by_id(cls, _id):
         return cls.query.filter_by(id=_id).first()
+
+    @classmethod
+    def find_by_Userid(cls, user_id):
+        return cls.query.filter_by(user_id=user_id).first()
+
 
     def delete_from_db(self):
         db.session.delete(self)

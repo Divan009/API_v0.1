@@ -8,18 +8,14 @@ from flask_jwt_extended import (
     jwt_optional
 )
 
+from models.mapping import MappingModel
+from models.repayRequest import RepayRequestModel
 from models.investRequest import InvestRequestModel
+from models.withdrawRequest import WithdrawRequestModel
 from models.user import UserModel
 from blacklist import BLACKLIST
 
-class all_investRequest(Resource):
-    @jwt_required
-    def get(self):
-        claims = get_jwt_claims()
-        if not claims['is_admin']:
-            return {'message': 'Admin privilege required.'}, 401
 
-        return {'investments': list(map(lambda x: x.json(), InvestRequestModel.find_all()))}
 
 class InvestOperations(Resource):
     parser = reqparse.RequestParser()
@@ -45,3 +41,11 @@ class InvestOperations(Resource):
         user.save_to_db()
         req.delete_from_db()
         return user.json()
+
+    @jwt_required
+    def get(self):
+        claims = get_jwt_claims()
+        if not claims['is_admin']:
+            return {'message': 'Admin privilege required.'}, 401
+
+        return {'investments': list(map(lambda x: x.json(), InvestRequestModel.find_all()))}
