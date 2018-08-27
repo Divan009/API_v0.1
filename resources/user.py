@@ -94,7 +94,7 @@ class RepayRequest(Resource):
 
 class WithdrawRequest(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument('amount',
+    parser.add_argument('withdraw_amt',
                         type = int,
                         required = True,
                         help = "amount (required) error"
@@ -109,12 +109,32 @@ class WithdrawRequest(Resource):
         user_id = get_jwt_identity()
         user = UserModel.find_by_id(user_id)
         data = WithdrawRequest.parser.parse_args()
-        if user.borrow_amt == 0 and user.invest_amt >= data['amount']:
-            withdraw_request = WithdrawRequestModel(user.id,data['amount'])
-        else:
-            return {'error':'operation not allowed'}
-        withdraw_request.save_to_db()
-        return {'message':'request submitted successfully'}
+
+        if data['options'] == 'add':
+            if user.borrow_amt == 0 and user.invest_amt >= data['withdraw_amt']:
+                order_id = 'PK'+str(data['withdraw_amt'])+'LD'+str(random.randint(1,10001))+'XI'
+                request = WithdrawRequestModel(user.id,data['withdraw_amt'],order_id,0)
+                request.save_to_db()
+                return {'message':'successful'}
+            else:
+                return {'error':'operation not allowed'}
+
+        elif data['options'] == 'cancel':
+            request = WithdrawRequestModel.find_by_Userid(user_id)
+            if request:
+                request.delete_from_db()
+            return {'message':'request cancelled'}, 200
+
+
+    @jwt_required
+    def get(self):
+        user_id = get_jwt_identity()
+        user = UserModel.find_by_id(user_id)
+        req = WithdrawRequestModel.find_by_Userid(user.id)
+        if req:
+            return req.json(), 200
+        return {'error':'no withdraw request'}, 401
+
 
 
 class borrow(Resource):

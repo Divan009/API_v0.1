@@ -5,9 +5,8 @@ from flask_jwt_extended import JWTManager
 from blacklist import BLACKLIST
 
 from resources.user import InvestRequest,RepayRequest,WithdrawRequest,borrow,UserRegister,UserLogin,UserLogout,TokenRefresh,all_investment,User_info
-from resources.admin import InvestOperations
+from resources.admin import InvestOperations,WithdrawOperations
 from resources.repayRequest import all_repayRequest,repay
-from resources.withdrawRequest import all_withdrawRequest,verifyWithdraw
 
 app = Flask(__name__)
 
@@ -96,12 +95,13 @@ api.add_resource(TokenRefresh,'/refresh_token')
 
 #invest
 api.add_resource(InvestOperations,'/verifyInvest')
+#withdraw
+api.add_resource(WithdrawOperations,'/verifyWithdraw')
+
 #repay
 api.add_resource(all_repayRequest,'/all_repayRequest')
 api.add_resource(repay,'/verifyRepay')
-#withdraw
-api.add_resource(all_withdrawRequest,'/all_withdrawRequest')
-api.add_resource(verifyWithdraw,'/verifyWithdraw')
+
 
 
 if __name__ == '__main__':
