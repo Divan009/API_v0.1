@@ -12,6 +12,7 @@ from models.mapping import MappingModel
 from models.repayRequest import RepayRequestModel
 from models.investRequest import InvestRequestModel
 from models.withdrawRequest import WithdrawRequestModel
+from models.borrowRequest import BorrowRequestModel
 from models.user import UserModel
 from blacklist import BLACKLIST
 
@@ -81,3 +82,52 @@ class WithdrawOperations(Resource):
             return {'message': 'Admin privilege required.'}, 401
 
         return {'withdraw_request': list(map(lambda x: x.json(), WithdrawRequestModel.find_all()))}
+
+class BorrowOperations(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('req_id',
+                        type = int,
+                        required = True,
+                        help = "req_id (required) error"
+                        )
+    @jwt_required
+    def post(self):
+        claims = get_jwt_claims()
+        if not claims['is_admin']:
+            return {'message': 'Admin privilege required.'}, 401
+        data = BorrowOperations.parser.parse_args()
+        req = BorrowRequestModel.find_by_id(data['req_id'])
+
+        user = UserModel.find_by_id(req.user_id)
+
+        if user:
+            if user.borrow_amt == 0 and req.amount<user.invest_amt:
+
+                lender = UserModel.find_investor(req.amount,user.username)
+                if lender:
+                    lender.lend_amt = lender.lend_amt + req.amount
+                    lender.invest_amt = lender.invest_amt - req.amount
+                    user.borrow_amt = req.amount
+                    lender.weight_id = lender.weight_id+1
+                    transaction = MappingModel(lender.id,user.id)
+                else:
+                    return {'message':'sorry no investor found'}
+
+            else:
+                return {'message':'error USER operation not allowed'}
+
+            transaction.save_to_db()
+            user.Trx_id = transaction.Trx_id
+            user.save_to_db()
+            lender.save_to_db()
+            req.delete_from_db()
+            return user.json()
+        return {'error':'user does not exist'}
+
+    @jwt_required
+    def get(self):
+        claims = get_jwt_claims()
+        if not claims['is_admin']:
+            return {'message': 'Admin privilege required.'}, 401
+
+        return {'borrow_request': list(map(lambda x: x.json(), BorrowRequestModel.find_all()))}

@@ -15,6 +15,7 @@ from flask_jwt_extended import (
 from models.repayRequest import RepayRequestModel
 from models.investRequest import InvestRequestModel
 from models.withdrawRequest import WithdrawRequestModel
+from models.borrowRequest import BorrowRequestModel
 from models.user import UserModel
 from models.mapping import MappingModel
 from blacklist import BLACKLIST
@@ -23,12 +24,10 @@ class all_investment(Resource):
     def get(self):
         return {'investments': list(map(lambda x: x.json(), UserModel.query.all()))}
 
-
-
 #user
 class InvestRequest(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument('invest_amt',
+    parser.add_argument('amt',
                         type = int,
                         required = True,
                         help = "invest_amt(required) error"
@@ -46,8 +45,8 @@ class InvestRequest(Resource):
         user = UserModel.find_by_id(user_id)
 
         if data['options'] == 'add':
-            order_id = 'PK'+str(data['invest_amt'])+'LD'+str(random.randint(1,10001))+'XI'
-            request = InvestRequestModel(user.id,data['invest_amt'],order_id,0)
+            order_id = 'PK'+str(data['amt'])+'LD'+str(random.randint(1,10001))+'XI'
+            request = InvestRequestModel(user.id,data['amt'],order_id,0)
             ''' further work require security breach '''
             request.save_to_db()
             return {'message':'successful'}
@@ -94,7 +93,7 @@ class RepayRequest(Resource):
 
 class WithdrawRequest(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument('withdraw_amt',
+    parser.add_argument('amt',
                         type = int,
                         required = True,
                         help = "amount (required) error"
@@ -111,9 +110,9 @@ class WithdrawRequest(Resource):
         data = WithdrawRequest.parser.parse_args()
 
         if data['options'] == 'add':
-            if user.borrow_amt == 0 and user.invest_amt >= data['withdraw_amt']:
-                order_id = 'PK'+str(data['withdraw_amt'])+'LD'+str(random.randint(1,10001))+'XI'
-                request = WithdrawRequestModel(user.id,data['withdraw_amt'],order_id,0)
+            if user.borrow_amt == 0 and user.invest_amt >= data['amt']:
+                order_id = 'PK'+str(data['amt'])+'LD'+str(random.randint(1,10001))+'XI'
+                request = WithdrawRequestModel(user.id,data['amt'],order_id,0)
                 request.save_to_db()
                 return {'message':'successful'}
             else:
@@ -137,39 +136,47 @@ class WithdrawRequest(Resource):
 
 
 
-class borrow(Resource):
+class borrowRequest(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument('borrow_amt',
+    parser.add_argument('amt',
                         type = int,
                         required = True,
                         help = "borrow_amt(required) error"
                         )
+    parser.add_argument('options',
+                        type = str,
+                        required = True,
+                        help = "option required"
+                        )
     @jwt_required
     def post(self):
-        data = borrow.parser.parse_args()
         user_id = get_jwt_identity()
         user = UserModel.find_by_id(user_id)
-        if user:
-            if user.borrow_amt == 0 and data['borrow_amt']<user.invest_amt:
-                #user.borrow_amt = data['borrow_amt'] #changes required
-                lender = UserModel.find_investor(data['borrow_amt'],user.username)
-                if lender:
-                    lender.lend_amt = lender.lend_amt+data['borrow_amt']
-                    lender.invest_amt = lender.invest_amt - data['borrow_amt']
-                    user.borrow_amt = data['borrow_amt']
-                    lender.weight_id = lender.weight_id + 1
-                    transaction = MappingModel(lender.id,user.id)
-                else:
-                    return {'message':'sorry no investor found'}
+        data = borrowRequest.parser.parse_args()
 
+        if data['options'] == 'add':
+            if user.borrow_amt == 0 and user.invest_amt >= data['amt']:
+                order_id = 'PK'+str(data['amt'])+'LD'+str(random.randint(1,10001))+'XI'
+                request = BorrowRequestModel(user.id,data['amt'],order_id,0)
+                request.save_to_db()
+                return {'message':'successful'}
             else:
-                return {'message':'error_USER operation not allowed'}
-            transaction.save_to_db()
-            user.Trx_id = transaction.Trx_id
-            user.save_to_db()
-            lender.save_to_db()
-            return user.json()
-        return {'error':'user does not exist'}
+                return {'error':'operation not allowed'}
+
+        elif data['options'] == 'cancel':
+            request = BorrowRequestModel.find_by_Userid(user_id)
+            if request:
+                request.delete_from_db()
+            return {'message':'request cancelled'}, 200
+
+    @jwt_required
+    def get(self):
+        user_id = get_jwt_identity()
+        user = UserModel.find_by_id(user_id)
+        req = BorrowRequestModel.find_by_Userid(user.id)
+        if req:
+            return req.json(), 200
+        return {'error':'no borrow request'}, 401
 
 
 class UserRegister(Resource):
