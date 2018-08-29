@@ -9,7 +9,6 @@ from flask_jwt_extended import (
 )
 
 from models.mapping import MappingModel
-from models.repayRequest import RepayRequestModel
 from models.investRequest import InvestRequestModel
 from models.withdrawRequest import WithdrawRequestModel
 from models.borrowRequest import BorrowRequestModel

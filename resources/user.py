@@ -12,7 +12,6 @@ from flask_jwt_extended import (
     jwt_optional
 )
 
-from models.repayRequest import RepayRequestModel
 from models.investRequest import InvestRequestModel
 from models.withdrawRequest import WithdrawRequestModel
 from models.borrowRequest import BorrowRequestModel
@@ -67,30 +66,6 @@ class InvestRequest(Resource):
             return req.json(), 200
         return {'error':'no invest request'}, 401
 
-
-class RepayRequest(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument('UTR',
-                        type = int,
-                        required = True,
-                        help = "UTR (required) error"
-                        )
-    @jwt_required
-    def post(self):
-        data = RepayRequest.parser.parse_args()
-        if len(str(data['UTR'])) != 12:
-            return {'error':'UPI reference is not 12 digits'}
-
-        user_id = get_jwt_identity()
-        user = UserModel.find_by_id(user_id)
-
-        if user.borrow_amt == 0:
-            return {'error':'operation invalid'}
-
-        request = RepayRequestModel(user.id,user.borrow_amt,data['UTR'])
-        request.save_to_db()
-        return {'message':'repay request submitted Successfully'}
-
 class WithdrawRequest(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('amt',
@@ -134,8 +109,6 @@ class WithdrawRequest(Resource):
             return req.json(), 200
         return {'error':'no withdraw request'}, 401
 
-
-
 class borrowRequest(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('amt',
@@ -177,6 +150,39 @@ class borrowRequest(Resource):
         if req:
             return req.json(), 200
         return {'error':'no borrow request'}, 401
+
+class Repay(Resource):
+    @jwt_required
+    def get(self):
+        user_id = get_jwt_identity()
+        user = UserModel.find_by_id(user_id)
+
+        if user:
+            transaction = MappingModel.find_by_id(user.Trx_id)
+
+            if transaction and transaction.b_id == user.id:
+                l_id = transaction.l_id
+                b_id = transaction.b_id
+
+                lender = UserModel.find_by_id(l_id)
+                borrower = UserModel.find_by_id(b_id)
+
+                lender.invest_amt = lender.invest_amt + borrower.borrow_amt
+                lender.lend_amt = lender.lend_amt - borrower.borrow_amt
+
+                borrower.borrow_amt = 0
+                borrower.Trx_id = None
+                transaction.delete_from_db()
+                lender.save_to_db()
+                borrower.save_to_db()
+
+            else:
+                return {'message':'error USER no such transaction'}
+
+            return {'message':'repayment successful'}
+
+
+
 
 
 class UserRegister(Resource):
@@ -233,8 +239,6 @@ class User_info(Resource):
         user_id = get_jwt_identity()
         user = UserModel.find_by_id(user_id)
         return user.json(), 200
-
-
 
 class UserLogout(Resource):
     @jwt_required
