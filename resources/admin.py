@@ -98,15 +98,18 @@ class BorrowOperations(Resource):
         req = BorrowRequestModel.find_by_id(data['req_id'])
 
         user = UserModel.find_by_id(req.user_id)
+        interest = int(req.amount * (3/100))
 
         if user:
-            if user.borrow_amt == 0 and req.amount<user.invest_amt:
+            if user.borrow_amt == 0 and req.amount+interest<user.invest_amt:
 
                 lender = UserModel.find_investor(req.amount,user.username)
                 if lender:
                     lender.lend_amt = lender.lend_amt + req.amount
+                    lender.interest_amt_L = lender.interest_amt_L+interest
                     lender.invest_amt = lender.invest_amt - req.amount
                     user.borrow_amt = req.amount
+                    user.interest_amt_B = interest
                     lender.weight_id = lender.weight_id+1
                     transaction = MappingModel(lender.id,user.id)
                 else:

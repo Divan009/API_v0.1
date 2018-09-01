@@ -11,6 +11,8 @@ class UserModel(db.Model):
     invest_amt = db.Column(db.Integer)
     lend_amt = db.Column(db.Integer)
     borrow_amt = db.Column(db.Integer)
+    interest_amt_L = db.Column(db.Integer)
+    interest_amt_B = db.Column(db.Integer)
 
     Trx_id = db.Column(db.Integer,db.ForeignKey('mapping.Trx_id'))
     weight_id = db.Column(db.Integer)
@@ -20,13 +22,15 @@ class UserModel(db.Model):
     withdrawRequestModel = db.relationship('WithdrawRequestModel')
     BorrowRequestModel = db.relationship('BorrowRequestModel')
 
-    def __init__(self,username,password,invest_amt=0,lend_amt=0,borrow_amt=0,weight_id=0):
+    def __init__(self,username,password,invest_amt=0,lend_amt=0,borrow_amt=0,weight_id=0,interest_amt_L=0,interest_amt_B=0):
         self.username = username
         self.password = password
         self.invest_amt = invest_amt
         self.lend_amt = lend_amt
         self.borrow_amt = borrow_amt
         self.weight_id = weight_id
+        self.interest_amt_L = interest_amt_L
+        self.interest_amt_B = interest_amt_B
 
 
     def save_to_db(self):
@@ -39,6 +43,8 @@ class UserModel(db.Model):
                 'invest_amt':self.invest_amt,
                 'lend_amt':self.lend_amt,
                 'borrow_amt':self.borrow_amt,
+                'interest_amt_L':self.interest_amt_L,
+                'interest_amt_B':self.interest_amt_B,
                 'transaction':self.Trx_id,
                 'weight_id':self.weight_id}
 

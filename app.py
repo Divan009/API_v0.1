@@ -4,7 +4,7 @@ from flask_restful import Api
 from flask_jwt_extended import JWTManager
 from blacklist import BLACKLIST
 
-from resources.user import InvestRequest,Repay,WithdrawRequest,borrowRequest,UserRegister,UserLogin,UserLogout,TokenRefresh,all_investment,User_info
+from resources.user import InvestRequest,Repay,WithdrawRequest,borrowRequest,UserRegister,UserLogin,UserLogout,TokenRefresh,all_investment,User_info,server_status
 from resources.admin import InvestOperations,WithdrawOperations,BorrowOperations
 
 app = Flask(__name__)
@@ -98,6 +98,9 @@ api.add_resource(InvestOperations,'/verifyInvest')
 api.add_resource(WithdrawOperations,'/verifyWithdraw')
 #borrow
 api.add_resource(BorrowOperations,'/verifyBorrow')
+
+#server status
+api.add_resource(server_status,'/status')
 
 
 

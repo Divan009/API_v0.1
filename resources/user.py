@@ -23,6 +23,10 @@ class all_investment(Resource):
     def get(self):
         return {'investments': list(map(lambda x: x.json(), UserModel.query.all()))}
 
+class server_status(Resource):
+    def get(self):
+        return {'status':'online'}
+
 #user
 class InvestRequest(Resource):
     parser = reqparse.RequestParser()
@@ -91,7 +95,7 @@ class WithdrawRequest(Resource):
                 request.save_to_db()
                 return {'message':'successful'}
             else:
-                return {'error':'operation not allowed'}
+                return {'error':999}
 
         elif data['options'] == 'cancel':
             request = WithdrawRequestModel.find_by_Userid(user_id)
@@ -134,7 +138,7 @@ class borrowRequest(Resource):
                 request.save_to_db()
                 return {'message':'successful'}
             else:
-                return {'error':'operation not allowed'}
+                return {'error':999}
 
         elif data['options'] == 'cancel':
             request = BorrowRequestModel.find_by_Userid(user_id)
@@ -167,17 +171,20 @@ class Repay(Resource):
                 lender = UserModel.find_by_id(l_id)
                 borrower = UserModel.find_by_id(b_id)
 
-                lender.invest_amt = lender.invest_amt + borrower.borrow_amt
+                borrower.invest_amt = borrower.invest_amt - (borrower.borrow_amt+borrower.interest_amt_B)
+                lender.invest_amt = lender.invest_amt + (borrower.borrow_amt + borrower.interest_amt_B)
                 lender.lend_amt = lender.lend_amt - borrower.borrow_amt
+                lender.interest_amt_L = lender.interest_amt_L - borrower.interest_amt_B
 
                 borrower.borrow_amt = 0
+                borrower.interest_amt_B = 0
                 borrower.Trx_id = None
                 transaction.delete_from_db()
                 lender.save_to_db()
                 borrower.save_to_db()
 
             else:
-                return {'message':'error USER no such transaction'}
+                return {'error':999}
 
             return {'message':'repayment successful'}
 
