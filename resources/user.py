@@ -130,9 +130,10 @@ class borrowRequest(Resource):
         user_id = get_jwt_identity()
         user = UserModel.find_by_id(user_id)
         data = borrowRequest.parser.parse_args()
+        interest = int(data['amt']*(3/100))
 
         if data['options'] == 'add':
-            if user.borrow_amt == 0 and user.invest_amt >= data['amt']:
+            if user.borrow_amt == 0 and data['amt']+interest<user.invest_amt:
                 order_id = 'PK'+str(data['amt'])+'LD'+str(random.randint(1,10001))+'XI'
                 request = BorrowRequestModel(user.id,data['amt'],order_id,0)
                 request.save_to_db()
@@ -208,7 +209,7 @@ class UserRegister(Resource):
         data = UserRegister.parser.parse_args()
         user = UserModel.find_by_username(data['username'])
         if user:
-            return {'error':'user already exist'}, 200
+            return {'error':'user already exist'}, 401
         else:
             user = UserModel(data['username'],data['password'])
         user.save_to_db()
