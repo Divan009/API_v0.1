@@ -59,6 +59,7 @@ class UserModel(db.Model):
     @classmethod
     def find_investor(cls, borrow_request, username):#more work needed
         req_investor = None
+        #add code to take (snippet) from multiple users 
         all_investor = cls.query.order_by(cls.weight_id).all()
         for each_investor in all_investor:
             if each_investor.username != username and each_investor.invest_amt > borrow_request:
