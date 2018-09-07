@@ -70,9 +70,6 @@ def revoked_token_callback():
     }), 401
 # JWT configuration ends
 
-@app.before_first_request
-def create_tables():
-    db.create_all()
 
 #deposit and withdraw request endpoint
 api.add_resource(InvestRequest,'/invest')
